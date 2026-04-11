@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kingdom's Last Stand – Fantasy Tower Defense</title>
+    <link rel="stylesheet" href="css/style.css" />
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Game canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD – top bar -->
+    <div id="hud">
+      <div class="hud-item">
+        <span class="hud-icon">&#x1F4B0;</span>
+        <span id="gold">150</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-icon">&#x2764;</span>
+        <span id="lives">20</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-icon">&#x1F4DC;</span>Wave&nbsp;<span id="wave"
+          >0 / 20</span
+        >
+      </div>
+      <div class="hud-item">
+        <span class="hud-icon">&#x2B50;</span>Score&nbsp;<span id="score"
+          >0</span
+        >
+      </div>
+      <button id="start-wave-btn">Start Wave</button>
+      <button id="speed-btn">▶▶ 2×</button>
+      <button id="end-game-btn">✕ End Game</button>
+    </div>
+
+    <!-- Tower selection panel – bottom bar -->
+    <div id="tower-panel">
+      <div class="panel-title">BUILD</div>
+
+      <button class="tower-btn" data-type="ARCHER">
+        <span class="btn-icon">&#x1F3F9;</span>
+        <span class="btn-name">Archer</span>
+        <span class="btn-cost">75g</span>
+        <span class="btn-desc">Fast · cheap</span>
+      </button>
+
+      <button class="tower-btn" data-type="WIZARD">
+        <span class="btn-icon">&#x1FA84;</span>
+        <span class="btn-name">Wizard</span>
+        <span class="btn-cost">275g</span>
+        <span class="btn-desc">Splash magic</span>
+      </button>
+
+      <button class="tower-btn" data-type="CANNON">
+        <span class="btn-icon">&#x1F4A5;</span>
+        <span class="btn-name">Cannon</span>
+        <span class="btn-cost">1000g</span>
+        <span class="btn-desc">Heavy splash</span>
+      </button>
+
+      <button class="tower-btn" data-type="FROST">
+        <span class="btn-icon">&#x2744;</span>
+        <span class="btn-name">Frost</span>
+        <span class="btn-cost">150g</span>
+        <span class="btn-desc">Slows enemies</span>
+      </button>
+
+      <div class="panel-hint">[ESC] deselect</div>
+    </div>
+
+    <!-- Tower info panel (shown when a placed tower is clicked) -->
+    <div id="tower-info">
+      <div id="info-name" class="info-name">Tower</div>
+
+      <!-- Stats -->
+      <table class="info-table">
+        <tr><td>DMG</td><td id="info-dmg">–</td></tr>
+        <tr><td>RNG</td><td id="info-range">–</td></tr>
+        <tr><td>SPD</td><td id="info-rate">–</td></tr>
+        <tr><td>SELL</td><td id="info-sell">–</td></tr>
+      </table>
+
+      <!-- Upgrade paths -->
+      <div class="upgrade-paths">
+        <!-- Path 0 -->
+        <div class="upgrade-path">
+          <div class="path-header">
+            <span id="path0-name" class="path-name">Path 1</span>
+            <span id="path0-tiers" class="path-tiers"></span>
+          </div>
+          <button id="upgrade-path0" class="upgrade-path-btn path0-btn">Upgrade</button>
+        </div>
+
+        <!-- Path 1 -->
+        <div class="upgrade-path">
+          <div class="path-header">
+            <span id="path1-name" class="path-name">Path 2</span>
+            <span id="path1-tiers" class="path-tiers"></span>
+          </div>
+          <button id="upgrade-path1" class="upgrade-path-btn path1-btn">Upgrade</button>
+        </div>
+      </div>
+
+      <button id="sell-btn">Sell</button>
+    </div>
+
+    <!-- Upgrade tooltip -->
+    <div id="upgrade-tooltip"></div>
+
+    <!-- Floating message -->
+    <div id="message"></div>
+
+    <!-- ── Intro screen ───────────────────────────────────────────────── -->
+    <div id="intro-screen">
+      <div id="intro-box">
+        <div class="intro-subtitle">A Fantasy Tower Defense</div>
+        <h1 id="intro-title">Kingdom's Last Stand</h1>
+        <div class="intro-divider"></div>
+        <p class="intro-flavor">
+          The kingdom is under siege. Hordes of goblins, orcs and ancient
+          skeletons march toward your castle. Build towers, spend wisely,
+          and hold the line.
+        </p>
+        <div class="intro-buttons">
+          <button id="intro-start-btn">⚔ Start Game</button>
+          <button id="intro-help-btn">? Help</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Help screen ────────────────────────────────────────────────── -->
+    <div id="help-screen">
+      <div id="help-box">
+        <h2 class="help-title">How to Play</h2>
+        <div class="help-divider"></div>
+
+        <div class="help-section">
+          <h3>🏰 Objective</h3>
+          <p>Stop enemies from reaching your castle. You start with <strong>20 lives</strong> and <strong>200 gold</strong> — each enemy that breaks through costs lives equal to its damage value.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>🔨 Building Towers</h3>
+          <p>Select a tower from the bottom panel and click any green tile to place it. You can also <strong>drag</strong> a tower button onto the map. Press <kbd>ESC</kbd> to deselect.</p>
+          <table class="help-table">
+            <tr><td>🏹 Archer · 75g</td><td><span class="tag-phys">Physical</span> Fast attack, single target. Available from wave 1.</td></tr>
+            <tr><td>❄ Frost · 150g</td><td><span class="tag-magic">Magic</span> Slows enemies on hit. Unlocks at wave 3.</td></tr>
+            <tr><td>🪄 Wizard · 275g</td><td><span class="tag-magic">Magic</span> Slow but splash — hits all nearby enemies. Unlocks at wave 5.</td></tr>
+            <tr><td>💥 Cannon · 1000g</td><td><span class="tag-phys">Physical</span> Massive splash damage, short range. Unlocks at wave 8.</td></tr>
+          </table>
+        </div>
+
+        <div class="help-section">
+          <h3>⬆ Upgrades</h3>
+          <p>Click a placed tower to open its upgrade panel. Each tower has <strong>2 upgrade paths</strong> with 3 tiers each. Hover over an upgrade button to preview what it does.</p>
+          <p style="margin-top:6px">Cross-path rule: you cannot have <strong>both</strong> paths at tier 2 or higher simultaneously — commit to a specialisation.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>⚔ Damage Types &amp; Resistances</h3>
+          <p>Every tower deals either <span class="tag-phys">Physical</span> or <span class="tag-magic">Magic</span> damage. Enemies have three resistance values (0–100%) that reduce incoming effects:</p>
+          <table class="help-table" style="margin-top:8px">
+            <tr><td>Armour</td><td>Reduces <span class="tag-phys">Physical</span> damage (Archer &amp; Cannon). Orcs and heavy enemies have thick armour.</td></tr>
+            <tr><td>Magic Resist</td><td>Reduces <span class="tag-magic">Magic</span> damage (Wizard &amp; Frost). Undead and mage-type enemies resist magic.</td></tr>
+            <tr><td>Slow Resist</td><td>Reduces Frost slow strength and duration. Agile enemies like wolves are hard to freeze.</td></tr>
+          </table>
+          <p style="margin-top:6px">Mix tower types — an armoured Orc that shrugs off Archers is still vulnerable to a Wizard.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>👾 Enemies</h3>
+          <p class="help-subheading">Waves 1 – 10</p>
+          <table class="help-table">
+            <tr><td>Goblin</td><td>Fast and fragile. No resistances — easy pickings for any tower.</td></tr>
+            <tr><td>Orc</td><td>Slow and very tanky. No resistances — just a lot of HP to chew through.</td></tr>
+            <tr><td>Skeleton</td><td>Medium speed. <strong>Magic resistant</strong> and <strong>hard to slow</strong> — physical towers work best.</td></tr>
+            <tr><td>Mini-Boss</td><td>First appears wave 5. Moderate resistances across the board. Focus fire recommended.</td></tr>
+            <tr><td>Boss</td><td>First appears wave 10. High HP and balanced resistances. Requires concentrated firepower.</td></tr>
+          </table>
+          <p class="help-subheading" style="margin-top:10px">Waves 11 – 20</p>
+          <table class="help-table">
+            <tr><td>Wolf</td><td>Very fast. <strong>Hard to slow</strong> — Frost barely affects them. Burst them down quickly.</td></tr>
+            <tr><td>Mega Wolf</td><td>Fast and <strong>armoured</strong>, extremely <strong>slow resistant</strong>. Use Magic splash to handle packs.</td></tr>
+            <tr><td>Mini-Boss 2</td><td>First appears wave 14. <strong>Armoured mage</strong> — resists both damage types. Upgrade your towers before facing these.</td></tr>
+            <tr><td>Overlord</td><td>Wave 20 only. Ancient warlord with the highest resistances in the game. All towers needed.</td></tr>
+          </table>
+        </div>
+
+        <div class="help-section">
+          <h3>💡 Tips</h3>
+          <ul>
+            <li>Earn gold by killing enemies (+wave completion bonus).</li>
+            <li>Sell towers for <strong>60%</strong> of their total invested cost.</li>
+            <li>Use <strong>▶▶ 2×</strong> to speed up the game between waves.</li>
+            <li>Enemy speed increases every 5 waves — keep upgrading.</li>
+            <li>Frost + Wizard is a powerful combo: slow enemies bunch up inside the Wizard's splash.</li>
+            <li>Cannon costs 1000g but is worth saving for — nothing else clears dense packs as fast.</li>
+            <li>Check enemy resistances: if a tower seems ineffective, switch damage types.</li>
+          </ul>
+        </div>
+
+        <button id="help-back-btn">← Back</button>
+      </div>
+    </div>
+
+    <!-- End-game confirmation dialog -->
+    <div id="confirm-overlay">
+      <div id="confirm-box">
+        <h2 id="confirm-title">End Game?</h2>
+        <p id="confirm-msg">Are you sure you want to end the game and return to the main screen?</p>
+        <div id="confirm-buttons">
+          <button id="confirm-yes">Yes, quit</button>
+          <button id="confirm-no">No, keep playing</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game over / victory overlay -->
+    <div id="overlay">
+      <div id="overlay-box">
+        <h1 id="overlay-title">Victory!</h1>
+        <p id="overlay-msg"></p>
+        <button id="overlay-btn">Play Again</button>
+      </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
