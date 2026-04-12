@@ -19,6 +19,41 @@ export const PATH_WAYPOINTS = [
 export const ENTRANCE = PATH_WAYPOINTS[0];
 export const CASTLE   = PATH_WAYPOINTS[PATH_WAYPOINTS.length - 1];
 
+// Water areas — towers cannot be placed here.
+// Placed near path bends to block the strongest tower positions.
+export const WATER_CELLS_DEF = [
+  // Pond inside the first bend (col 4 turns from row 7 up to row 2).
+  [1,4],[2,4],
+  [1,5],[2,5],
+  // Lake between the two vertical path segments (cols 4 and 10).
+  [6,4],[7,4],[8,4],
+  [6,5],[7,5],[8,5],
+  // Swamp near the bottom-right stretch.
+  [13,10],[14,10],
+  [13,11],[14,11],
+  [13,12],[14,12],
+];
+
+// Extra water cells added on top of WATER_CELLS_DEF in hard mode.
+export const HARD_EXTRA_WATER_DEF = [
+  // Extend the centre lake further down, forcing longer detours.
+  [6,6],[7,6],[8,6],
+  [6,7],[7,7],[8,7],
+  // Mid-right pocket between the two vertical path columns.
+  [11,5],[12,5],
+  [11,6],[12,6],
+  [11,7],[12,7],
+  // Bottom-centre cluster near the final corridor approach.
+  [8,11],[9,11],[10,11],
+  [8,12],[9,12],[10,12],
+];
+
+export const DIFFICULTY_CONFIGS = {
+  easy:   { hpMult: 0.6,  rewardMult: 1.5, startingGold: 300, water: 'easy'   },
+  normal: { hpMult: 1.0,  rewardMult: 1.0, startingGold: 200, water: 'normal' },
+  hard:   { hpMult: 1.5,  rewardMult: 0.7, startingGold: 150, water: 'hard'   },
+};
+
 /**
  * Each tower has:
  *   unlockWave  — wave number at which the button becomes available (1 = start)
@@ -50,17 +85,17 @@ export const TOWER_DEFS = {
       {
         name: 'Sharp Arrows',
         tiers: [
-          { name: 'Serrated Tips',  cost:  60, desc: '+10 damage, +0.15 attack speed',          apply: t => { t.damage += 10; t.fireRate += 0.15; } },
-          { name: 'Rapid Volley',   cost: 100, desc: '+14 damage, +0.25 attack speed',          apply: t => { t.damage += 14; t.fireRate += 0.25; } },
-          { name: 'Arrow Storm',    cost: 180, desc: '+22 damage, +0.35 speed, fires 2 arrows', apply: t => { t.damage += 22; t.fireRate += 0.35; t.multiShot = 2; } },
+          { name: 'Serrated Tips',  cost:  60, desc: '+8 damage, +0.10 attack speed',           apply: t => { t.damage += 8;  t.fireRate += 0.10; } },
+          { name: 'Rapid Volley',   cost: 100, desc: '+10 damage, +0.18 attack speed',          apply: t => { t.damage += 10; t.fireRate += 0.18; } },
+          { name: 'Arrow Storm',    cost: 180, desc: '+15 damage, +0.25 speed, fires 2 arrows', apply: t => { t.damage += 15; t.fireRate += 0.25; t.multiShot = 2; } },
         ],
       },
       {
         name: 'Eagle Eye',
         tiers: [
-          { name: 'Long Bow',      cost:  50, desc: '+1.2 range',                              apply: t => { t.range += 1.2; } },
-          { name: 'Hawk Sight',    cost:  90, desc: '+1.5 range, 25% crit chance (2× damage)', apply: t => { t.range += 1.5; t.critChance = 0.25; } },
-          { name: 'True Sight',    cost: 160, desc: '+2.0 range, 50% crit chance (2.5× damage)',apply: t => { t.range += 2.0; t.critChance = 0.5; t.critMult = 2.5; } },
+          { name: 'Long Bow',      cost:  50, desc: '+1.0 range',                               apply: t => { t.range += 1.0; } },
+          { name: 'Hawk Sight',    cost:  90, desc: '+1.2 range, 20% crit chance (2× damage)',  apply: t => { t.range += 1.2; t.critChance = 0.20; } },
+          { name: 'True Sight',    cost: 160, desc: '+1.5 range, 35% crit chance (2× damage)',  apply: t => { t.range += 1.5; t.critChance = 0.35; t.critMult = 2.0; } },
         ],
       },
     ],
@@ -188,13 +223,13 @@ export const ENEMY_DEFS = {
   BOSS:       { name: 'Boss',       hp: 2000, speed: 1.2, reward: 100, damage: 5, color: 0xCC0000, size: 0.62,
                 physResist: 0.60, magicResist: 0.60, slowResist: 0.50 },
   // ── Waves 11-20 ───────────────────────────────────────────────────────────
-  WOLF:       { name: 'Wolf',       hp:  320, speed: 4.2, reward:  25, damage: 2, color: 0x886644, size: 0.40,
+  WOLF:       { name: 'Wolf',       hp:  320, speed: 4.2, reward:  16, damage: 2, color: 0x886644, size: 0.40,
                 physResist: 0,    magicResist: 0,    slowResist: 0.80 }, // too agile to freeze — burst them down
-  MEGA_WOLF:  { name: 'Mega Wolf',  hp:  700, speed: 3.6, reward:  45, damage: 3, color: 0x553322, size: 0.52,
+  MEGA_WOLF:  { name: 'Mega Wolf',  hp:  700, speed: 3.6, reward:  28, damage: 3, color: 0x553322, size: 0.52,
                 physResist: 0.80, magicResist: 0,    slowResist: 0.80 }, // dense fur + agile — use Magic, can't slow
-  MINI_BOSS2: { name: 'Mini Boss 2',hp: 1800, speed: 1.3, reward: 100, damage: 4, color: 0x220066, size: 0.65,
+  MINI_BOSS2: { name: 'Mini Boss 2',hp: 1800, speed: 1.3, reward:  65, damage: 4, color: 0x220066, size: 0.65,
                 physResist: 0.80, magicResist: 0.80, slowResist: 0.60 }, // heavily armoured mage — need all tower types
-  BOSS2:      { name: 'Overlord',   hp: 5000, speed: 1.1, reward: 220, damage: 6, color: 0x880000, size: 0.72,
+  BOSS2:      { name: 'Overlord',   hp: 5000, speed: 1.1, reward: 150, damage: 6, color: 0x880000, size: 0.72,
                 physResist: 0.80, magicResist: 0.80, slowResist: 0.80 }, // ancient warlord — ultimate resistance
 };
 

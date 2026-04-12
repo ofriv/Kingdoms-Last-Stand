@@ -478,6 +478,107 @@ body.dragging { user-select: none; cursor: grabbing !important; }
   box-shadow: 0 0 18px rgba(255,140,0,0.5);
 }
 
+/* ── Difficulty screen ────────────────────────────────────────────────────── */
+#difficulty-screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  background: url('../assets/sprites/start_screen.png') center/cover no-repeat;
+}
+
+#difficulty-box {
+  text-align: center;
+  max-width: 620px;
+  width: 90%;
+  padding: 50px 60px;
+  background: var(--bg-mid);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 0 60px rgba(255,215,0,0.15), 0 0 120px rgba(100,0,200,0.1);
+}
+
+#difficulty-title {
+  font-size: 2rem;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255,215,0,0.4);
+  margin-bottom: 16px;
+}
+
+.diff-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.diff-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 20px;
+  width: 148px;
+  border-radius: 8px;
+  font-family: var(--font);
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+.diff-btn:hover { transform: translateY(-3px); }
+
+.diff-icon { font-size: 1.8rem; }
+.diff-name { font-size: 1rem; font-weight: bold; letter-spacing: 0.06em; }
+.diff-desc { font-size: 0.68rem; color: rgba(255,255,255,0.6); line-height: 1.4; }
+
+.diff-btn-easy {
+  background: linear-gradient(135deg, #1a4a10, #2e7a18);
+  color: #aaffaa;
+  border-color: rgba(100, 255, 100, 0.4);
+}
+.diff-btn-easy:hover {
+  background: linear-gradient(135deg, #246618, #3da020);
+  box-shadow: 0 0 18px rgba(80, 220, 80, 0.45);
+}
+
+.diff-btn-normal {
+  background: linear-gradient(135deg, #5a1a00, #aa4400);
+  color: var(--gold);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+.diff-btn-normal:hover {
+  background: linear-gradient(135deg, #7a2a00, #cc5500);
+  box-shadow: 0 0 18px rgba(255, 140, 0, 0.5);
+}
+
+.diff-btn-hard {
+  background: linear-gradient(135deg, #3a0010, #880020);
+  color: #ffaaaa;
+  border-color: rgba(255, 80, 80, 0.4);
+}
+.diff-btn-hard:hover {
+  background: linear-gradient(135deg, #580018, #bb0030);
+  box-shadow: 0 0 18px rgba(255, 60, 60, 0.5);
+}
+
+#diff-back-btn {
+  padding: 10px 24px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  font-family: var(--font);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+#diff-back-btn:hover {
+  color: var(--text);
+  border-color: rgba(255,255,255,0.5);
+}
+
 #intro-help-btn {
   padding: 12px 24px;
   background: transparent;

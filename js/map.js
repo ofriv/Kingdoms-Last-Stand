@@ -1,4 +1,4 @@
-import { GRID_COLS, GRID_ROWS, PATH_WAYPOINTS, CELL_SIZE } from './constants.js';
+import { GRID_COLS, GRID_ROWS, PATH_WAYPOINTS, CELL_SIZE, WATER_CELLS_DEF, HARD_EXTRA_WATER_DEF } from './constants.js';
 
 function computePathCells() {
   const cells = new Set();
@@ -22,6 +22,17 @@ export const PATH_CELLS = computePathCells();
 
 export function isPathCell(col, row) {
   return PATH_CELLS.has(`${col},${row}`);
+}
+
+export const WATER_CELLS = new Set(WATER_CELLS_DEF.map(([c, r]) => `${c},${r}`));
+
+const _hardAllDef = [...WATER_CELLS_DEF, ...HARD_EXTRA_WATER_DEF];
+export const HARD_WATER_CELLS = new Set(_hardAllDef.map(([c, r]) => `${c},${r}`));
+
+export function getWaterCells(difficulty) {
+  if (difficulty === 'easy')   return new Set();
+  if (difficulty === 'hard')   return HARD_WATER_CELLS;
+  return WATER_CELLS; // normal
 }
 
 export function isValidCell(col, row) {

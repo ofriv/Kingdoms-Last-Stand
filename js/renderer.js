@@ -67,8 +67,9 @@ const ENEMY_SPRITE_SCALE = {
 };
 
 export class Renderer {
-  constructor(canvas) {
-    this.canvas = canvas;
+  constructor(canvas, waterCells) {
+    this.canvas     = canvas;
+    this._waterCells = waterCells; // Set of 'col,row' strings — may be empty for easy mode
 
     this.scene    = new THREE.Scene();
     this.scene.background = new THREE.Color(0x1a1a2e);
@@ -184,7 +185,8 @@ export class Renderer {
     // Checkerboard grass tiles
     for (let r = 0; r < GRID_ROWS; r++) {
       for (let c = 0; c < GRID_COLS; c++) {
-        if (PATH_CELLS.has(`${c},${r}`)) continue;
+        if (PATH_CELLS.has(`${c},${r}`))       continue;
+        if (this._waterCells.has(`${c},${r}`)) continue;
         const col = (c + r) % 2 === 0 ? 0x5AA832 : 0x4E9A2C;
         this._addTile(c, r, col, 0.01);
       }
@@ -194,6 +196,12 @@ export class Renderer {
     PATH_CELLS.forEach(key => {
       const [c, r] = key.split(',').map(Number);
       this._addTile(c, r, 0xA8855A, 0.02, 0.98);
+    });
+
+    // Water tiles — solid light blue, slightly sunken
+    this._waterCells.forEach(key => {
+      const [c, r] = key.split(',').map(Number);
+      this._addTile(c, r, 0x5BB8F5, -0.04, 1.0);
     });
   }
 

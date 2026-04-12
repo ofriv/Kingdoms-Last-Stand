@@ -1,5 +1,5 @@
-import { TOWER_DEFS, STARTING_GOLD, STARTING_LIVES, WAVE_BONUS, CELL_SIZE } from './constants.js';
-import { isPathCell, isValidCell } from './map.js';
+import { TOWER_DEFS, STARTING_GOLD, STARTING_LIVES, WAVE_BONUS, CELL_SIZE, DIFFICULTY_CONFIGS } from './constants.js';
+import { isPathCell, isValidCell, getWaterCells } from './map.js';
 import { Tower } from './towers.js';
 import { Projectile } from './projectiles.js';
 import { WaveManager } from './waves.js';
@@ -7,8 +7,13 @@ import { Renderer } from './renderer.js';
 import { UI } from './ui.js';
 
 export class Game {
-  constructor(canvas) {
-    this.renderer = new Renderer(canvas);
+  constructor(canvas, difficulty = 'normal') {
+    const cfg         = DIFFICULTY_CONFIGS[difficulty] ?? DIFFICULTY_CONFIGS.normal;
+    this._hpMult      = cfg.hpMult;
+    this._rewardMult  = cfg.rewardMult;
+    this._waterCells  = getWaterCells(difficulty);
+
+    this.renderer = new Renderer(canvas, this._waterCells);
     this.ui       = new UI(
       type  => this._selectTowerType(type),
       ()    => this._startWave(),
@@ -18,7 +23,7 @@ export class Game {
       ()    => { this._paused = false; },
     );
 
-    this.gold  = STARTING_GOLD;
+    this.gold  = cfg.startingGold;
     this.lives = STARTING_LIVES;
     this.score = 0;
 
@@ -70,6 +75,10 @@ export class Game {
     // Spawn
     if (this.waveManager.active) {
       for (const e of this.waveManager.update(dt)) {
+        if (this._hpMult !== 1) {
+          e.maxHp = Math.round(e.maxHp * this._hpMult);
+          e.hp    = e.maxHp;
+        }
         this.enemies.push(e);
         this.renderer.addEnemy(e);
       }
@@ -98,8 +107,9 @@ export class Game {
     for (const e of this.enemies) {
       if (!e.alive && !e.reachedEnd) {
         this.renderer.removeEnemy(e.id);
-        this.gold  += e.reward;
-        this.score += e.reward;
+        const earned = Math.round(e.reward * this._rewardMult);
+        this.gold  += earned;
+        this.score += earned;
       }
     }
     this.enemies = this.enemies.filter(e => e.alive && !e.reachedEnd);
@@ -240,7 +250,7 @@ export class Game {
   }
 
   _placeTower(col, row) {
-    if (!isValidCell(col, row) || isPathCell(col, row)) return;
+    if (!isValidCell(col, row) || isPathCell(col, row) || this._waterCells.has(`${col},${row}`)) return;
     if (this.towerMap.has(`${col},${row}`))             return;
 
     const def = TOWER_DEFS[this.selectedTowerType];
@@ -331,7 +341,7 @@ export class Game {
     this._moveDragGhost(e.clientX, e.clientY);
 
     const cell = this.renderer.pickCell(e.clientX, e.clientY);
-    if (cell && !isPathCell(cell.col, cell.row) && !this.towerMap.has(`${cell.col},${cell.row}`)) {
+    if (cell && !isPathCell(cell.col, cell.row) && !this._waterCells.has(`${cell.col},${cell.row}`) && !this.towerMap.has(`${cell.col},${cell.row}`)) {
       this.renderer.showHover(cell.col, cell.row);
       const def = TOWER_DEFS[this._dragType];
       this.renderer.showRange(cell.col * CELL_SIZE, cell.row * CELL_SIZE, def.range);
@@ -376,7 +386,7 @@ export class Game {
       const cell = this.renderer.pickCell(e.clientX, e.clientY);
       if (!cell) { this.renderer.hideHover(); return; }
       const { col, row } = cell;
-      if (this.selectedTowerType && !isPathCell(col, row) && !this.towerMap.has(`${col},${row}`)) {
+      if (this.selectedTowerType && !isPathCell(col, row) && !this._waterCells.has(`${col},${row}`) && !this.towerMap.has(`${col},${row}`)) {
         this.renderer.showHover(col, row);
       } else {
         this.renderer.hideHover();
